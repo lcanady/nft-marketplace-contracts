@@ -5,30 +5,19 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract NFT is ERC721, ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
-    string private _uri;
 
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        string memory uri
-    ) ERC721(name_, symbol_) {
-        _uri = uri;
-    }
+    constructor() ERC721("MyToken", "MTK") {}
 
-    function setURI(string memory uri) public onlyOwner {
-        _uri = uri;
-    }
-
-    function adminMint() public onlyOwner {
-        _tokenIdCounter.increment();
+    function safeMint(address to, string memory uri) public onlyOwner {
         uint256 tokenId = _tokenIdCounter.current();
-        _mint(msg.sender, tokenId);
+        _tokenIdCounter.increment();
+        _safeMint(to, tokenId);
+        _setTokenURI(tokenId, uri);
     }
 
     // The following functions are overrides required by Solidity.
@@ -46,9 +35,6 @@ contract NFT is ERC721, ERC721URIStorage, Ownable {
         override(ERC721, ERC721URIStorage)
         returns (string memory)
     {
-        return
-            string(
-                abi.encodePacked(_baseURI(), Strings.toString(tokenId), ".json")
-            );
+        return super.tokenURI(tokenId);
     }
 }

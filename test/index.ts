@@ -7,7 +7,7 @@ describe("NFT Marketplace", async () => {
     const Market = await ethers.getContractFactory("NFTMarketplace");
 
     const market = await Market.deploy();
-    const nft = await TestNFT.deploy("MyToken", "TKN", "ABC.com");
+    const nft = await TestNFT.deploy();
 
     expect(market).to.not.equal(undefined);
     expect(nft).to.not.equal(undefined);
@@ -16,7 +16,6 @@ describe("NFT Marketplace", async () => {
   it("A user can update the service fee", async () => {
     const Market = await ethers.getContractFactory("NFTMarketplace");
     const market = await Market.deploy();
-
     market.setServiceFee(2000);
     const price = await market.getServiceFee();
     expect(price).to.equal(2000);
@@ -25,24 +24,25 @@ describe("NFT Marketplace", async () => {
   it("A user can list an NFT for sale, and return it.", async () => {
     const TestNFT = await ethers.getContractFactory("NFT");
     const Market = await ethers.getContractFactory("NFTMarketplace");
+    const [owner] = await ethers.getSigners();
 
     const market = await Market.deploy();
-    const nft = await TestNFT.deploy("MyToken", "TKN", "ABC.com");
-    await nft.adminMint();
-    await nft.approve(market.address, 1);
+    const nft = await TestNFT.deploy();
 
-    await market.addItemToMarket(nft.address, 1, "1000000000000000000");
+    await nft.safeMint(owner.address, "abc.com/foob.json");
+    await nft.approve(market.address, 0);
+    await market.addItemToMarket(nft.address, 0, "1000000000000000000");
 
     const item = await market.getItem(1);
     expect(item.nftContract).to.equal(nft.address);
-    expect(item.tokenId).to.equal(1);
+    expect(item.tokenId).to.equal("0");
   });
 
   it("A user can set the royalties for their NFT contracts.", async () => {
     const TestNFT = await ethers.getContractFactory("NFT");
     const Market = await ethers.getContractFactory("NFTMarketplace");
     const market = await Market.deploy();
-    const nft = await TestNFT.deploy("MyToken", "TKN", "ABC.com");
+    const nft = await TestNFT.deploy();
 
     await market.setRoyalties(nft.address, 10);
     const royalties = await market.getRoyalties(nft.address);
@@ -54,10 +54,10 @@ describe("NFT Marketplace", async () => {
     const Market = await ethers.getContractFactory("NFTMarketplace");
     const [owner] = await ethers.getSigners();
     const market = await Market.deploy();
-    const nft = await TestNFT.deploy("MyToken", "TKN", "ABC.com");
-    await nft.adminMint();
-    await nft.approve(market.address, 1);
-    await market.addItemToMarket(nft.address, 1, 1);
+    const nft = await TestNFT.deploy();
+    await nft.safeMint(owner.address, "abc.com/foob.json");
+    await nft.approve(market.address, 0);
+    await market.addItemToMarket(nft.address, 0, 1);
 
     await market.cancelSaleFromMarket(1);
     const token = await nft.balanceOf(owner.address);
@@ -71,10 +71,10 @@ describe("NFT Marketplace", async () => {
     const Market = await ethers.getContractFactory("NFTMarketplace");
     const [owner] = await ethers.getSigners();
     const market = await Market.deploy();
-    const nft = await TestNFT.deploy("MyToken", "TKN", "ABC.com");
-    await nft.adminMint();
-    await nft.approve(market.address, 1);
-    await market.addItemToMarket(nft.address, 1, 1);
+    const nft = await TestNFT.deploy();
+    await nft.safeMint(owner.address, "abc.com/foob.json");
+    await nft.approve(market.address, 0);
+    await market.addItemToMarket(nft.address, 0, 1);
     await market.buyItem(1, { value: "1000000000000000000" });
     const count = await nft.balanceOf(owner.address);
     expect(count).to.equal(1);
